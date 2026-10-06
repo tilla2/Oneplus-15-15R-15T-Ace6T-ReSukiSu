@@ -1,8 +1,11 @@
-# 🚀 OnePlus ReSukiSU Kernel Builder
+# 🚀 OnePlus BakaSU Kernel Builder
 
-GitHub Actions workflow for building flashable **ReSukiSU GKI kernels** for supported OnePlus devices.
+GitHub Actions workflow for building flashable **BakaSU GKI kernels** for supported OnePlus devices.
 
-It syncs Android GKI sources, adds **ReSukiSU**, optionally applies **SUSFS**, and packages the result as an **AnyKernel3 ZIP**.
+It syncs Android GKI sources, adds **BakaSU**, optionally applies **SUSFS**, and packages the result as an **AnyKernel3 ZIP**.
+
+> **BakaSU** is the project previously published as **ReSukiSU** (`ReSukiSU/ReSukiSU` → `Baka-SU/BakaSU`).
+> Same tree, new name — output ZIPs are now named `AK3_BakaSU_…`.
 
 ---
 
@@ -45,7 +48,7 @@ One kernel per GKI release, not one per device:
 
 ## ✨ Features
 
-- ReSukiSU integration
+- BakaSU integration
 - Optional SUSFS
 - Optional Baseband Guard / ✨LSM Do not enable as it does not work with 6.12 kernels !✨
 - Optional Netfilter + IPSet
@@ -77,7 +80,7 @@ One kernel per GKI release, not one per device:
 |---|---|
 | `DEVICE` | Device to build, or `all` |
 | `GKI_RELEASE` | `auto` = the device default above, or pin `android16-6.12-2025-06` (6.12.23) / `-2025-09` (6.12.38) / `-2025-12` (6.12.58) |
-| `KSU_META` | ReSukiSU source: `branch/tag/commit` |
+| `KSU_META` | BakaSU source: `branch/tag/commit` |
 | `SUSFS_META` | Empty = latest, `-1` = disabled, hash = pinned |
 | `SUFFIX` | Kernel local version tail. **Empty = the stock suffix for the selected GKI release**, `-1` = disabled, or set your own |
 | `SUBLEVEL` | Override the kernel SUBLEVEL |
@@ -106,16 +109,16 @@ An unrecognised release falls back to a random OEM-shaped tail.
 
 ## 📦 Output
 
-Naming: `AK3_ReSukiSU_<ksuver>_<SUSFS-ver|noSUSFS>_<device>_<kernel>[_LSM].zip`
+Naming: `AK3_BakaSU_<ksuver>_<SUSFS-ver|noSUSFS>_<device>_<kernel>[_LSM].zip`
 
 Example ZIP:
-`AK3_ReSukiSU_43000_SUSFS-v2.3.0_OnePlus15-15T_6.12.23.zip`
+`AK3_BakaSU_43000_SUSFS-v2.3.0_OnePlus15-15T_6.12.23.zip`
 
 With LSM:
-`AK3_ReSukiSU_43000_SUSFS-v2.3.0_OnePlus15-15T_6.12.23_LSM.zip`
+`AK3_BakaSU_43000_SUSFS-v2.3.0_OnePlus15-15T_6.12.23_LSM.zip`
 
 SUSFS disabled:
-`AK3_ReSukiSU_43000_noSUSFS_OnePlus15-15T_6.12.23.zip`
+`AK3_BakaSU_43000_noSUSFS_OnePlus15-15T_6.12.23.zip`
 
 > Building `DEVICE=all` compiles each **unique** kernel once — one per GKI
 > release rather than one per device — so you get three ZIPs:
@@ -137,4 +140,4 @@ Use at your own risk. Keep a backup boot image and make sure fastboot/recovery a
 
 ## 🙏 Credits
 
-Thanks to the maintainers of Android GKI, ReSukiSU, SUSFS, AnyKernel3, Baseband Guard, and related community patches.
+Thanks to the maintainers of Android GKI, BakaSU, SUSFS, AnyKernel3, Baseband Guard, and related community patches.

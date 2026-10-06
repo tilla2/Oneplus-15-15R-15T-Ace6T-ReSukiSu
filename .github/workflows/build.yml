@@ -19,12 +19,13 @@ on:
 
       KSU_SETUP_BRANCH:
         type: choice
-        description: "🌿 ReSukiSU setup.sh branch"
+        description: "🌿 BakaSU setup.sh branch"
         required: true
         default: main
         options:
           - main
-          - dev
+          - auto-hook
+          - refine-flash
 
       SUSFS_META:
         type: string
@@ -40,7 +41,7 @@ on:
 
       KSU_META:
         type: string
-        description: "📦 ReSukiSU source: branch/CustomTag/CommitHash"
+        description: "📦 BakaSU source: branch/CustomTag/CommitHash"
         required: false
         default: "main/⚡Ultra⚡/"
 
@@ -138,7 +139,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: resukisu-${{ github.ref }}-${{ inputs.DEVICE }}
+  group: bakasu-${{ github.ref }}-${{ inputs.DEVICE }}
   cancel-in-progress: true
 
 jobs:
@@ -673,7 +674,7 @@ jobs:
           apply_suffix "msm-kernel/scripts/setlocalversion"
           apply_suffix "external/dtc/scripts/setlocalversion"
 
-      - name: Add ReSukiSU
+      - name: Add BakaSU
         shell: bash
         run: |
           set -euo pipefail
@@ -685,9 +686,21 @@ jobs:
 
           SETUP_BRANCH="${{ inputs.KSU_SETUP_BRANCH }}"
 
-          curl -fL --proto '=https' --tlsv1.2 \
-            -o /tmp/ksu_setup.sh \
-            "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/${SETUP_BRANCH}/kernel/setup.sh"
+          fetch_setup() {
+            curl -fL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 \
+              -o /tmp/ksu_setup.sh \
+              "https://raw.githubusercontent.com/Baka-SU/BakaSU/$1/kernel/setup.sh"
+          }
+
+          if ! fetch_setup "${SETUP_BRANCH}"; then
+            echo "::warning::setup.sh not found on '${SETUP_BRANCH}', falling back to main"
+            fetch_setup main
+          fi
+
+          if [[ ! -s /tmp/ksu_setup.sh ]] || ! head -c 2 /tmp/ksu_setup.sh | grep -q '#!'; then
+            echo "::error::Downloaded setup.sh is not a shell script"
+            exit 1
+          fi
 
           bash /tmp/ksu_setup.sh "$BRANCH_NAME"
 
@@ -710,10 +723,10 @@ jobs:
             echo "KSUVER=${KSU_VERSION}"
           } >> "$GITHUB_ENV"
 
-          echo "✅ ReSukiSU commit: ${KSU_COMMIT_SHA}"
-          echo "✅ ReSukiSU version: ${KSU_VERSION}"
+          echo "✅ BakaSU commit: ${KSU_COMMIT_SHA}"
+          echo "✅ BakaSU version: ${KSU_VERSION}"
 
-      - name: Apply Patches — ReSukiSU and SUSFS
+      - name: Apply Patches — BakaSU and SUSFS
         shell: bash
         run: |
           set -euo pipefail
@@ -1207,7 +1220,7 @@ jobs:
             echo "$entry" >> "$CONFIG_FILE"
           }
 
-          echo "# === ReSukiSU ===" >> "$CONFIG_FILE"
+          echo "# === BakaSU ===" >> "$CONFIG_FILE"
           append_config "CONFIG_KSU=y"
           append_config "CONFIG_KSU_MULTI_MANAGER_SUPPORT=y"
 
@@ -1759,7 +1772,7 @@ jobs:
           else
             SUSFS_ZIP_PART="SUSFS-${SUSVER:-unknown}"
           fi
-          ZIP_NAME="AK3_ReSukiSU_${KSUVER}_${SUSFS_ZIP_PART}_${DEVICE_NAME_SAFE}_${TKERNEL_VERSION}${{ steps.suffix.outputs.value }}.zip"
+          ZIP_NAME="AK3_BakaSU_${KSUVER}_${SUSFS_ZIP_PART}_${DEVICE_NAME_SAFE}_${TKERNEL_VERSION}${{ steps.suffix.outputs.value }}.zip"
           echo "📦 Creating: $ZIP_NAME"
           SUSFS_MODULE_PRESENT=false
           if [ "${{ inputs.SUSFS_META }}" != "-1" ]; then
@@ -1794,17 +1807,17 @@ jobs:
         with:
           tag_name: ak3-${{ github.run_id }}
           name: >-
-            ReSukiSU ${{ env.KSUVER }} — SUSFS ${{ env.SUSVER }} — build #${{ github.run_number }}
+            BakaSU ${{ env.KSUVER }} — SUSFS ${{ env.SUSVER }} — build #${{ github.run_number }}
             ${{ inputs.LSM && '[LSM]' || '' }}
             ${{ inputs.SUSFS_META == '-1' && '[noSUSFS]' || '' }}
           body: |
-            ## 📦 ReSukiSU Kernels
+            ## 📦 BakaSU Kernels
 
             Every ZIP below is a complete AnyKernel3 package. **Pick the one whose
             kernel version matches the firmware you are running** — the devices it
             is flashable on and the kernel version are both in the filename:
 
-            `AK3_ReSukiSU_<ksuver>_<susfs>_<devices>_<kernel>.zip`
+            `AK3_BakaSU_<ksuver>_<susfs>_<devices>_<kernel>.zip`
 
             | Kernel | Built from | Flashable on |
             |---|---|---|
@@ -1951,7 +1964,7 @@ jobs:
 
           ---
 
-          # ${STATUS_ICON} ${DEVICE_NAME} — ReSukiSU Build ${STATUS_TEXT}
+          # ${STATUS_ICON} ${DEVICE_NAME} — BakaSU Build ${STATUS_TEXT}
 
           ## Build Status
 
@@ -1973,7 +1986,7 @@ jobs:
           | Kernel Version | \`${TKERNEL_VERSION}\` |
           | Branch | \`common-${KERNEL_BRANCH}\` |
 
-          ## ReSukiSU
+          ## BakaSU
 
           | Property | Value |
           |----------|-------|
